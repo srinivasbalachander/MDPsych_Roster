@@ -7,7 +7,7 @@ library(editData)
 course = "MD"
 year = 2025
 session = "July"
-n_joinees = 12
+n_joinees = 22
 
 # Get list of JRs
 list_jrs = sapply(1:n_joinees, function(x) {paste0(course, "_", 
@@ -16,7 +16,7 @@ list_jrs = sapply(1:n_joinees, function(x) {paste0(course, "_",
 
 # Make a data frame to input JR characteristics (optional)
 jr_details <- data.frame(ID = list_jrs, Name = NA, Gender = NA, Kannada = NA, 
-                                        Hindi = NA, Tamil = NA, Telugu = NA, Malayalam = NA)
+                         Hindi = NA, Tamil = NA, Telugu = NA, Malayalam = NA)
 
 #jr_details <- editData(jr_details)
 
@@ -37,11 +37,11 @@ joining_date = as.Date(paste0(year, "-", match(session, month.name), "-", "01"))
 
 posting_start_dates = sapply(0:(n_postings-1), 
                              function(x) {joining_date %m+% months(x*3)}) %>% 
-                                           as.Date() %>%format("%b %Y")
+  as.Date() %>%format("%b %Y")
 posting_end_dates = sapply(0:(n_postings-1), 
                            function(x) {joining_date %m+% months(x*3 + 2)}) %>% 
-                                            as.Date() %>% 
-                                            format("%b %Y")
+  as.Date() %>% 
+  format("%b %Y")
 
 posting_dates <- paste0(substr(posting_start_dates, 1, 3), "-", posting_end_dates)
 
@@ -94,79 +94,79 @@ while(sum(is.na(jr_df[, posting_dates[index_adult]])) > 0) { # Keep repeating th
   jr_df <- jr_df_template
   posting_df <- posting_df_template
   
-for(jr in list_jrs) { # Looping across JRs
+  for(jr in list_jrs) { # Looping across JRs
     
-for(curr_month in posting_dates[index_adult]) {   # Looping across months 
-
-   curr_posting = "NA"   # This value will change after the first JR is allocated a posting for that month
-  
-   # Skip this month enitrely is the JR has already been assigned a Unit
-   if(!is.na(jr_df_template[jr_df_template$JR == jr, 
-                            curr_month])) {next}
-   
-   # Get list of Units completed by the JR in previous months
-   jr_completed_units <- jr_df %>% filter(JR == jr) %>% select(-1) %>%  as.character()
-   jr_completed_units <- jr_completed_units[jr_completed_units != "NA" & !is.na(jr_completed_units)]
-   jr_units_remaining <- adult[!(adult %in% jr_completed_units)]
-   
-  # Get a count of how many JRs have already been allotted in each unit for that month
-  curr_tally  = posting_df %>% filter(Month == curr_month) %>%          # Subset the current month
-                              select(starts_with("Unit")) %>% t() %>%   # Work with only adult psych units here
-                              data.frame() %>% rename("N" = ".") %>%   # Housekeeping
-                              rownames_to_column(var = "Unit") %>%     # More housekeeping
-                              mutate(min_reached = case_when(N >= min_per_adult_unit ~ 1, .default = 0),
-                                     max_reached = case_when(N >= max_per_adult_unit ~ 1, .default = 0),
-                                     prev_max = sapply(adult, function(x) {sum(posting_df[,x] == max_per_adult_unit)}))
-  
-  # Take those Units that have not reached the minimum number of JRs needed
-  units_avail = curr_tally %>% filter(min_reached == 0) %>% 
-                               select(Unit) %>% 
-                               unlist() %>% unname()
-  
-  # Remove the unit that was taken by the JR in the previous iteration from this list
-  units_avail = units_avail[units_avail != curr_posting]
-  
-  # Keep backup units that have reached the minimum number but can take one more JR if needed
-  # while ensuring that units got more/max JRs < 'remainder' number of times 
-  
-  units_avail2 = curr_tally %>% filter(min_reached == 1 & 
-                                         max_reached == 0 & 
-                                         prev_max < remainder_adult) %>% 
-                                select(Unit) %>% 
-                                unlist() %>% unname()
-  
-  # Chose set of units that JR hasn't completed, but slots are available                               
-  jr_units_avail <- jr_units_remaining[jr_units_remaining %in% units_avail]
-  
-  # Chose among those units that have minimum required JRs but need to fit somewhere else
-  jr_units_avail2 <- jr_units_remaining[jr_units_remaining %in% units_avail2]
-  
-  if(length(jr_units_avail) > 0) {
-    
-   # Select unit randomly from those available
-  curr_posting = sample(jr_units_avail, 1)
-  
-  } else {
-    
-    if(length(jr_units_avail2) > 0) {
-    
-   # Select unit from any other adult units which the JR hasn't done
-  curr_posting = sample(jr_units_avail2, 1)
-  
-    } else {curr_posting = NA } # Do not assign posting now, retry in the next iteration
-
-  } # For  else statement above that
-
-# Assign a JR to that Unit
-  jr_df[jr_df$JR == jr, curr_month] <- curr_posting 
-  
-# Update the tally of the number of JRs posted in each Unit 
-  
-  if(!is.na(curr_posting)) {
-  
-  posting_df[posting_df$Month == curr_month, curr_posting] <- sum(posting_df[posting_df$Month == curr_month, curr_posting], 1)
-                           } #Curr_posting is NA
-  
+    for(curr_month in posting_dates[index_adult]) {   # Looping across months 
+      
+      curr_posting = "NA"   # This value will change after the first JR is allocated a posting for that month
+      
+      # Skip this month enitrely is the JR has already been assigned a Unit
+      if(!is.na(jr_df_template[jr_df_template$JR == jr, 
+                               curr_month])) {next}
+      
+      # Get list of Units completed by the JR in previous months
+      jr_completed_units <- jr_df %>% filter(JR == jr) %>% select(-1) %>%  as.character()
+      jr_completed_units <- jr_completed_units[jr_completed_units != "NA" & !is.na(jr_completed_units)]
+      jr_units_remaining <- adult[!(adult %in% jr_completed_units)]
+      
+      # Get a count of how many JRs have already been allotted in each unit for that month
+      curr_tally  = posting_df %>% filter(Month == curr_month) %>%          # Subset the current month
+        select(starts_with("Unit")) %>% t() %>%   # Work with only adult psych units here
+        data.frame() %>% rename("N" = ".") %>%   # Housekeeping
+        rownames_to_column(var = "Unit") %>%     # More housekeeping
+        mutate(min_reached = case_when(N >= min_per_adult_unit ~ 1, .default = 0),
+               max_reached = case_when(N >= max_per_adult_unit ~ 1, .default = 0),
+               prev_max = sapply(adult, function(x) {sum(posting_df[,x] == max_per_adult_unit)}))
+      
+      # Take those Units that have not reached the minimum number of JRs needed
+      units_avail = curr_tally %>% filter(min_reached == 0) %>% 
+        select(Unit) %>% 
+        unlist() %>% unname()
+      
+      # Remove the unit that was taken by the JR in the previous iteration from this list
+      units_avail = units_avail[units_avail != curr_posting]
+      
+      # Keep backup units that have reached the minimum number but can take one more JR if needed
+      # while ensuring that units got more/max JRs < 'remainder' number of times 
+      
+      units_avail2 = curr_tally %>% filter(min_reached == 1 & 
+                                             max_reached == 0 & 
+                                             prev_max < remainder_adult) %>% 
+        select(Unit) %>% 
+        unlist() %>% unname()
+      
+      # Chose set of units that JR hasn't completed, but slots are available                               
+      jr_units_avail <- jr_units_remaining[jr_units_remaining %in% units_avail]
+      
+      # Chose among those units that have minimum required JRs but need to fit somewhere else
+      jr_units_avail2 <- jr_units_remaining[jr_units_remaining %in% units_avail2]
+      
+      if(length(jr_units_avail) > 0) {
+        
+        # Select unit randomly from those available
+        curr_posting = sample(jr_units_avail, 1)
+        
+      } else {
+        
+        if(length(jr_units_avail2) > 0) {
+          
+          # Select unit from any other adult units which the JR hasn't done
+          curr_posting = sample(jr_units_avail2, 1)
+          
+        } else {curr_posting = NA } # Do not assign posting now, retry in the next iteration
+        
+      } # For  else statement above that
+      
+      # Assign a JR to that Unit
+      jr_df[jr_df$JR == jr, curr_month] <- curr_posting 
+      
+      # Update the tally of the number of JRs posted in each Unit 
+      
+      if(!is.na(curr_posting)) {
+        
+        posting_df[posting_df$Month == curr_month, curr_posting] <- sum(posting_df[posting_df$Month == curr_month, curr_posting], 1)
+      } #Curr_posting is NA
+      
     } # JR's for loop
   } # Month's for loop
 } # While statement
@@ -259,3 +259,31 @@ while(sum(is.na(jr_df[, posting_dates[index_periph]])) > 0) { # Keep repeating t
   } # Month's for loop
 } # While statement
 
+
+
+# Posting Order Generator
+
+order.month = posting_dates[5]
+
+posting_order <- data.frame(matrix(nrow = max(c(max_per_adult_unit, 
+                                                max_per_periph_unit)),
+                                  ncol = length(c(adult, periph))))
+colnames(posting_order) <- c(adult, periph)
+
+for(i in colnames(posting_order)) {
+  
+  jr_df_month <- jr_df[,c("JR", order.month)]
+
+  colnames(jr_df_month)[2] <- "Unit"
+  
+  jrs_unit <- jr_df_month[jr_df_month$Unit == i,"JR"]
+  
+  if(length(jrs_unit) < nrow(posting_order)) {
+       remainder2 <- rep(NA, times = length(nrow(posting_order) - length(jrs_unit)))
+       jrs_unit <- c(jrs_unit, remainder2)}
+  
+  posting_order[,i] <- jrs_unit
+  
+}
+
+View(posting_order)
